@@ -1,0 +1,24 @@
+body {
+    margin: 0;
+    overflow: hidden;
+}
+
+.helpInfo {
+    position: absolute;
+    width: 100%;
+    right: 6px;
+    left : 6px;
+    color: orange;
+    font-size: 20px;
+    text-align: left;
+}
+
+#h1 {
+    top : 4px;
+}
+#h2 {
+    top : 26px;
+}
+#h3 {
+    top : 48px;
+}
