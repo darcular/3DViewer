@@ -93,8 +93,10 @@ xLabs.Viewer.prototype = {
 //        if(!this.xLabsController.isFaceDetected) return; // TODO : using a counter provide fault-tolerance
         var self = this;
         this.xLabsController.update(function(deltaX, deltaY, dolly){
-            self.orbitControl.rotateLeft(deltaX);
-            self.orbitControl.rotateUp(deltaY);
+//            self.orbitControl.rotateLeft(deltaX);
+//            self.orbitControl.rotateUp(deltaY);
+            self.orbitControl.panLeft(deltaX*2);
+            self.orbitControl.panUp(deltaY*2);
             var zoomScale = getZoomScale();
             if(dolly === 1)
                 self.orbitControl.dollyOut(zoomScale);
