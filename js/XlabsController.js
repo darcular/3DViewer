@@ -15,6 +15,7 @@ xLabs.webCamController = function(){
     this.headX = 0;
     this.headX = 0;
     this.dolly = 0;
+    this.roll = 0;
     this.autoRotate = 0;
     this.isFaceDetected = false;
     document.addEventListener( "xLabsApiReady", function(){self.onApiReady();});
@@ -30,6 +31,7 @@ xLabs.webCamController.prototype = {
         this.headX = state.kvHeadX;
         this.headY = state.kvHeadY;
         this.headZ = state.kvHeadZ;
+        this.roll = state.kvHeadRoll;
         this.isFaceDetected = state.kvValidationErrors[0]=="F" ? false : true;
         document.getElementById("h1").innerHTML="X: " + this.headX;
         document.getElementById("h2").innerHTML="Y: " + this.headY;
@@ -53,36 +55,58 @@ xLabs.webCamController.prototype = {
         // x movement
         var newValueX = smoother(this.oldHeadX, this.headX, 0.7);
         var deltaX;
-        if(newValueX > this.headZ * this.thresholdRatio){
-            this.autoRotate = 1; //left
-            deltaX = 0;
+        var viewOffSetX= newValueX;
+//        if(newValueX > this.headZ * this.thresholdRatio){
+//            this.autoRotate = 1; //left
+//            deltaX = 0;
+//            viewOffSetX = this.headZ * this.thresholdRatio;
+//        }
+//        else if(newValueX < -this.headZ * this.thresholdRatio){
+//            this.autoRotate = -1; //right
+//            deltaX = 0;
+//            viewOffSetX = -this.headZ * this.thresholdRatio;
+//        }
+//        else{
+//            this.autoRotate = 0;
+//            deltaX = (newValueX - this.oldHeadX)/8.0;
+//        }
+//        console.log(this.roll);
+        if(this.roll > 0.25){
+           this.autoRotate =1;
         }
-        else if(newValueX < -this.headZ * this.thresholdRatio){
-            this.autoRotate = -1; //right
-            deltaX = 0;
+        else if(this.roll < -0.25){
+            this.autoRotate =-1;
         }
         else{
             this.autoRotate = 0;
-            deltaX = (newValueX - this.oldHeadX)/8.0;
         }
+        deltaX = (newValueX - this.oldHeadX)/8;
+
+
+
+
         // y movement
-        var newValueY = smoother(this.oldHeadY, this.headY);
+        var newValueY = smoother(this.oldHeadY, this.headY, 0.8);
         var deltaY = 0;
-//        deltaY = newValueY - this.oldHeadY;   //up and down has been removed
+//        deltaY = (newValueY - this.oldHeadY)/5;   //up and down has been removed
+//        console.log(deltaY);
+
 
         // z movement
         this.dolly = 0;
-        if(this.headZ<1.7){
+        if(this.headZ<1.6){
             this.dolly = 1;
         }
-        else if(this.headZ>2.3){
+        else if(this.headZ>2.4){
             this.dolly = -1;
         }
 
         this.oldHeadX = newValueX === undefined ? 0 : newValueX;
         this.oldHeadY = newValueY === undefined ? 0 : newValueY;
         this.oldHeadZ = this.headZ;
-        callback(deltaX, -deltaY, this.dolly);
+
+
+        callback(deltaX, -deltaY, this.dolly, viewOffSetX);
     }
 }
 

@@ -16,6 +16,9 @@ xLabs.Viewer = function(){
     this.height = window.innerHeight;
     this.loader = new THREE.OBJMTLLoader();
     this.object;
+    this.gui;
+    this.importObj;
+    this.loader;
 };
 
 xLabs.Viewer.prototype = {
@@ -26,11 +29,14 @@ xLabs.Viewer.prototype = {
         this.container.appendChild(this.renderer.domElement);
         this.scene = new THREE.Scene();
         THREEx.WindowResize(this.renderer, this.camera);
+        this.initGUI();
         this.initCamera();
         this.initLight();
         this.initGrid();
         this.loadObject('assets/models/motocycle/moto01.obj','assets/models/motocycle/moto01.mtl');
         this.initXLabsController();
+//        this.gl = this.renderer.domElement.getContext("webgl");
+        this.loader = new Loader(this);
     },
     start : function(){
         var self = this;
@@ -44,13 +50,16 @@ xLabs.Viewer.prototype = {
     },
     initCamera : function(){
         this.camera = new THREE.PerspectiveCamera(50, this.width/this.height, 0.1, 30000);
-        this.camera.position.set(2,2,2);
+        this.camera.position.set(2,1,0);
         this.camera.lookAt(new THREE.Vector3(0,0,0));
+
+        this.camera.setViewOffset(this.width,this.height, this.width/4 , this.height/4, this.width/2, this.height/2);
+
         this.orbitControl = new THREE.OrbitControls( this.camera, this.renderer.domElement );
         this.orbitControl.userPan = false;
         this.orbitControl.userPanSpeed = 0.0;
-        this.orbitControl.minDistance = 1;
-        this.orbitControl.maxDistance = 4;
+        this.orbitControl.minDistance = 0.1;
+        this.orbitControl.maxDistance = 30;
         this.orbitControl.target = new THREE.Vector3(0,0,0);
 //        document.addEventListener("key") //TODO : add reset keyboard listener
     },
@@ -76,12 +85,28 @@ xLabs.Viewer.prototype = {
       this.xLabsController = new xLabs.webCamController();
     },
     addObject : function(object){
+        this.clearObject();
         if(object instanceof  THREE.Object3D){
-            this.adjustCenter(object);
-            this.grid.position.y -= ((object.minVector.y+object.maxVector.y)/2-object.minVector.y);
+            this.adjustModel(object);
+//            var p =1.2;
+//            if(object.height>1){
+//                p = object.height*p;
+//                var position = this.camera.position;
+//                position = position.multiplyScalar(p);
+//                this.camera.position.set(position.x, position.y, position.z);
+//            }
+//            this.grid.position.y = 0 - ((object.minVector.y+object.maxVector.y)/2-object.minVector.y);
+            console.log(object.newScale*object.heightY/2);
+            this.grid.position.y = 0 - object.newScale*object.heightY/2;
             this.object = object;
             this.scene.add(this.object);
         }
+    },
+    clearObject : function(){
+        this.scene.remove(this.object);
+    },
+    setScene : function(scene){
+        this.scene = scene;
     },
     loadObject : function(obj_path, mtll_path){
         var self = this;
@@ -90,21 +115,22 @@ xLabs.Viewer.prototype = {
         });
     },
     update3DSpace : function(){
-//        if(!this.xLabsController.isFaceDetected) return; // TODO : using a counter provide fault-tolerance
+//        if(!this.xLabsController.isFaceDetected) return; // TODO : using a counter to provide fault-tolerance
         var self = this;
-        this.xLabsController.update(function(deltaX, deltaY, dolly){
-//            self.orbitControl.rotateLeft(deltaX);
-//            self.orbitControl.rotateUp(deltaY);
-            self.orbitControl.panLeft(deltaX*2);
-            self.orbitControl.panUp(deltaY*2);
+        this.xLabsController.update(function(deltaX, deltaY, dolly, viewOffSetX){
+            self.orbitControl.rotateUp(deltaY);
+            self.orbitControl.panLeft(5*deltaX);
+
             var zoomScale = getZoomScale();
             if(dolly === 1)
                 self.orbitControl.dollyOut(zoomScale);
             else if (dolly=== -1)
                 self.orbitControl.dollyIn(zoomScale);
-            self.orbitControl.update();
-        });
 
+            self.orbitControl.update();
+            var distance = new THREE.Vector3().copy(self.orbitControl.object.position).sub(self.orbitControl.target).length();
+            self.camera.setViewOffset(self.width,self.height, self.width/4+350*viewOffSetX/distance, self.height/4, self.width/2, self.height/2);
+        });
         if(this.xLabsController.autoRotate == 1){
             this.object.rotation.y += 0.01;
         }
@@ -112,8 +138,9 @@ xLabs.Viewer.prototype = {
             this.object.rotation.y -= 0.01;
         }
     },
-    adjustCenter : function(object){
+    adjustModel : function(object){
         if(!(object instanceof THREE.Object3D)) return;
+        //calculate model center and new scale
         var minX=0, minY=0, minZ=0, maxX=0, maxY=0, maxZ=0;
         object.traverse(function(child){
             if(child instanceof THREE.Mesh){
@@ -127,22 +154,27 @@ xLabs.Viewer.prototype = {
                 maxZ = Math.max(maxZ, box.max.z);
             }
         });
-        object.maxVector = new THREE.Vector3(maxX, maxY, maxZ);
-        object.minVector = new THREE.Vector3(minX, minY, minZ);
-        object.centerVector = new THREE.Vector3((maxX+minX)/2, (maxY+minY)/2, (maxZ+minZ)/2);
-//        object.position.set(object.centerVector.x, object.centerVector.y, object.centerVector.z);
+        object.widthX = maxX-minX;
+        object.heightY = maxY-minY;
+        object.lengthZ = maxZ-minZ;
+
+        console.log(object.widthX);
+        console.log(object.heightY);
+        console.log(object.lengthZ);
+        object.newScale = 1.0/Math.max(object.widthX, Math.max(object.heightY, object.lengthZ));
+//        object.maxVector = new THREE.Vector3(maxX, maxY, maxZ);
+//        object.minVector = new THREE.Vector3(minX, minY, minZ);
+//        object.centerVector = new THREE.Vector3((maxX+minX)/2, (maxY+minY)/2, (maxZ+minZ)/2);
+
+        //applyMatrix at object3D level does not change the rotation center, apply matrix at mesh level instead
 //        object.applyMatrix(new THREE.Matrix4().makeTranslation(-1*(maxX+minX)/2, -1*(maxY+minY)/2, -1*(maxZ+minZ)/2));
-//        object.updateMatrix(true);
-//        object.updateMatrixWorld(true);
+
+        //set the new scale and new center of model
         object.traverse(function(child){
             if(child instanceof THREE.Mesh){
 //                var offset = child.geometry.center();
-                child.applyMatrix(new THREE.Matrix4().makeTranslation(-1*(maxX+minX)/2, -1*(maxY+minY)/2, -1*(maxZ+minZ)/2));
-//                child.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-1*(maxX+minX)/2, -1*(maxY+minY)/2, -1*(maxZ+minZ)/2));
-//                child.geometry.verticesNeedUpdate = true;
-//                child.geometry.computeBoundingBox();
-//                var offset = child.geometry.center();
-//                child.applyMatrix(new THREE.Matrix4().makeTranslation(-offset.x, -offset.y, -offset.z));
+                child.applyMatrix(new THREE.Matrix4().makeScale(object.newScale, object.newScale, object.newScale));
+                child.applyMatrix(new THREE.Matrix4().makeTranslation(-1*(maxX+minX)*object.newScale/2, -1*(maxY+minY)*object.newScale/2, -1*(maxZ+minZ)*object.newScale/2));
             }
         });
     },
@@ -156,9 +188,30 @@ xLabs.Viewer.prototype = {
             document.getElementById("zoom").innerHTML = "";
         document.getElementById("left").innerHTML = this.xLabsController.autoRotate == 1 ? "Auto Left" : "";
         document.getElementById("right").innerHTML = this.xLabsController.autoRotate == -1 ? "Auto Right" : "";
+    },
+    initGUI : function (){
+        var self = this;
+        this.gui = new dat.GUI();
+        this.importObj = document.createElement("input");
+        this.importObj.type = 'file';
+        this.importObj.addEventListener("change", onFileChange);
+        var parameters =
+        {
+            a: function() {self.importObj.click();},
+            b: function() {self.clearObject();}
+        };
+        // gui.add( parameters )
+        this.gui.add( parameters, 'a' ).name('Import');
+        this.gui.add( parameters, 'b' ).name('Clear');
+//    this.gui.open();
+        this.gui.close();
     }
 }
 
 function getZoomScale() {
     return Math.pow( 0.95, 0.1 );
+}
+
+function onFileChange(event){
+    viewer.loader.loadFile(viewer.importObj.files[0]);
 }

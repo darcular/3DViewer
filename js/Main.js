@@ -7,10 +7,11 @@
 //    width = window.innerWidth,
 //    height=window.innerHeight;
 
+var viewer;
 
 function main(){
     if(Detector.webgl){
-        var viewer = new xLabs.Viewer();
+        viewer = new xLabs.Viewer();
         viewer.init();
         viewer.start();
     }
