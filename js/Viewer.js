@@ -15,7 +15,7 @@ xLabs.Viewer = function(){
     this.width = window.innerWidth;
     this.height = window.innerHeight;
     this.loader = new THREE.OBJMTLLoader();
-    this.object;
+    this.object = new THREE.Object3D();
     this.gui;
     this.importObj;
     this.loader;
@@ -28,6 +28,7 @@ xLabs.Viewer.prototype = {
         this.renderer.setSize(this.width,this.height);
         this.container.appendChild(this.renderer.domElement);
         this.scene = new THREE.Scene();
+        this.scene.add(this.object);
         THREEx.WindowResize(this.renderer, this.camera);
         this.initGUI();
         this.initCamera();
@@ -59,13 +60,13 @@ xLabs.Viewer.prototype = {
         this.orbitControl.userPan = false;
         this.orbitControl.userPanSpeed = 0.0;
         this.orbitControl.minDistance = 0.1;
-        this.orbitControl.maxDistance = 30;
+        this.orbitControl.maxDistance = Infinity;
         this.orbitControl.target = new THREE.Vector3(0,0,0);
 //        document.addEventListener("key") //TODO : add reset keyboard listener
     },
     initLight : function(){
         this.light = new THREE.SpotLight(0xffffff);
-        this.light.position.set(0,10,0);
+        this.light.position.set(0,10000,0);
         this.scene.add(this.light);
     },
     initGrid : function(){
@@ -77,7 +78,7 @@ xLabs.Viewer.prototype = {
         var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
         var floorGeometry = new THREE.PlaneGeometry(1000, 1000, 1, 1);
         this.grid = new THREE.Mesh(floorGeometry, floorMaterial);
-        this.grid.scale.set(0.06,0.06,0.06);
+        this.grid.scale.set(0.02,0.02,0.02);
         this.grid.rotation.x = Math.PI / 2;
         this.scene.add(this.grid);
     },
@@ -88,22 +89,18 @@ xLabs.Viewer.prototype = {
         this.clearObject();
         if(object instanceof  THREE.Object3D){
             this.adjustModel(object);
-//            var p =1.2;
-//            if(object.height>1){
-//                p = object.height*p;
-//                var position = this.camera.position;
-//                position = position.multiplyScalar(p);
-//                this.camera.position.set(position.x, position.y, position.z);
-//            }
-//            this.grid.position.y = 0 - ((object.minVector.y+object.maxVector.y)/2-object.minVector.y);
-            console.log(object.newScale*object.heightY/2);
             this.grid.position.y = 0 - object.newScale*object.heightY/2;
-            this.object = object;
-            this.scene.add(this.object);
+//            this.object = object;
+//            this.scene.add(this.object);
+            this.object.add(object);
         }
     },
     clearObject : function(){
-        this.scene.remove(this.object);
+//        this.scene.remove(this.object);
+        this.object.traverse(function(child){
+            viewer.object.remove(child);
+        });
+//        this.object.remove
     },
     setScene : function(scene){
         this.scene = scene;
@@ -137,7 +134,14 @@ xLabs.Viewer.prototype = {
         else if(this.xLabsController.autoRotate == -1){
             this.object.rotation.y -= 0.01;
         }
+//        this.object.applyMatrix(new THREE.Matrix4().makeRotationY(0.05));
+//        this.object.rotation.y += 0.005;
+
+//        this.object.applyMatrix(new THREE.Matrix4().makeScale(this.object.newScale, this.object.newScale, this.object.newScale));
+//        this.object.applyMatrix(new THREE.Matrix4().makeTranslation(-1*(this.object.maxX+this.object.minX)*this.object.newScale/2, -1*(this.object.maxY+this.object.minY)*this.object.newScale/2, -1*(this.object.maxZ+this.object.minZ)*this.object.newScale/2));
+//        this.object.applyMatrix(new THREE.Matrix4().makeTranslation(0.0001, 0.0001, 0.0001));
     },
+
     adjustModel : function(object){
         if(!(object instanceof THREE.Object3D)) return;
         //calculate model center and new scale
@@ -145,6 +149,7 @@ xLabs.Viewer.prototype = {
         object.traverse(function(child){
             if(child instanceof THREE.Mesh){
                 child.geometry.computeBoundingBox();
+                console.log(child.geometry.position);
                 var box = child.geometry.boundingBox;
                 minX = Math.min(minX, box.min.x);
                 minY = Math.min(minY, box.min.y);
@@ -158,10 +163,8 @@ xLabs.Viewer.prototype = {
         object.heightY = maxY-minY;
         object.lengthZ = maxZ-minZ;
 
-        console.log(object.widthX);
-        console.log(object.heightY);
-        console.log(object.lengthZ);
-        object.newScale = 1.0/Math.max(object.widthX, Math.max(object.heightY, object.lengthZ));
+
+        object.newScale = 1/Math.max(object.widthX, Math.max(object.heightY, object.lengthZ));
 //        object.maxVector = new THREE.Vector3(maxX, maxY, maxZ);
 //        object.minVector = new THREE.Vector3(minX, minY, minZ);
 //        object.centerVector = new THREE.Vector3((maxX+minX)/2, (maxY+minY)/2, (maxZ+minZ)/2);
@@ -172,9 +175,22 @@ xLabs.Viewer.prototype = {
         //set the new scale and new center of model
         object.traverse(function(child){
             if(child instanceof THREE.Mesh){
-//                var offset = child.geometry.center();
+                //solution 1
+//                child.applyMatrix(new THREE.Matrix4().makeScale(object.newScale, object.newScale, object.newScale));
+//                child.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-(maxX+minX)/4, -(maxY+minY)/4, -(maxZ+minZ)/4));
+//                child.applyMatrix(new THREE.Matrix4().makeTranslation((maxX+minX)*object.newScale/4, (maxY+minY)*object.newScale/4, (maxZ+minZ)*object.newScale/4));
+
+                //solution2
                 child.applyMatrix(new THREE.Matrix4().makeScale(object.newScale, object.newScale, object.newScale));
-                child.applyMatrix(new THREE.Matrix4().makeTranslation(-1*(maxX+minX)*object.newScale/2, -1*(maxY+minY)*object.newScale/2, -1*(maxZ+minZ)*object.newScale/2));
+                child.applyMatrix(new THREE.Matrix4().makeTranslation(-(maxX+minX)*object.newScale/2, -(maxY+minY)*object.newScale/2, -(maxZ+minZ)*object.newScale/2));
+
+
+//                child.geometry.computeBoundingBox();
+//                child.geometry.center();
+//                child.applyMatrix(new THREE.Matrix4().makeTranslation(-1*(maxX+minX)*object.newScale/2, -1*(maxY+minY)*object.newScale/2, -1*(maxZ+minZ)*object.newScale)/2);
+
+//                    offset = child.geometry.center();
+//                child.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-offset.x, -offset.y, -offset.z))
             }
         });
     },
