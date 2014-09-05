@@ -33,9 +33,9 @@ xLabs.webCamController.prototype = {
         this.headZ = state.kvHeadZ;
         this.roll = state.kvHeadRoll;
         this.isFaceDetected = state.kvValidationErrors[0]=="F" ? false : true;
-        document.getElementById("h1").innerHTML="X: " + this.headX;
-        document.getElementById("h2").innerHTML="Y: " + this.headY;
-        document.getElementById("h3").innerHTML="Z: " + this.headZ;
+        // document.getElementById("h1").innerHTML="X: " + this.headX;
+        // document.getElementById("h2").innerHTML="Y: " + this.headY;
+        // document.getElementById("h3").innerHTML="Z: " + this.headZ;
     },
     onApiReady : function(){
         xLabs.isXlabReady = true;
