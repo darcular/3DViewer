@@ -1,11 +1,6 @@
 /**
  * @author Yikai Gong
  */
-//var time= Date.now(),container,camera,scene,renderer,skyBox,controlBox,wall,trackMesh,
-//    ground,moto,track,orbitControl,directionalLight,gui,stats,
-//    ready = false,
-//    width = window.innerWidth,
-//    height=window.innerHeight;
 
 var viewer;
 

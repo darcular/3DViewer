@@ -53,7 +53,7 @@ xLabs.webCamController.prototype = {
     update : function(callback){
         if(!this.headX || !this.headY || !this.headZ) return;  //to avoid undefined value
         // x movement
-        var newValueX = smoother(this.oldHeadX, this.headX, 0.7);
+        var newValueX = smoother(this.oldHeadX, this.headX, 0.8);
         var deltaX;
         var viewOffSetX= newValueX;
 //        if(newValueX > this.headZ * this.thresholdRatio){
@@ -80,7 +80,7 @@ xLabs.webCamController.prototype = {
         else{
             this.autoRotate = 0;
         }
-        deltaX = (newValueX - this.oldHeadX)/8;
+        deltaX = newValueX - this.oldHeadX;
 
 
 
@@ -101,9 +101,9 @@ xLabs.webCamController.prototype = {
             this.dolly = -1;
         }
 
-        this.oldHeadX = newValueX === undefined ? 0 : newValueX;
-        this.oldHeadY = newValueY === undefined ? 0 : newValueY;
-        this.oldHeadZ = this.headZ;
+//        this.oldHeadX = newValueX === undefined ? 0 : newValueX;
+//        this.oldHeadY = newValueY === undefined ? 0 : newValueY;
+//        this.oldHeadZ = this.headZ;
 
 
         callback(deltaX, -deltaY, this.dolly, viewOffSetX);

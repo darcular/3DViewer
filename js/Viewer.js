@@ -116,17 +116,20 @@ xLabs.Viewer.prototype = {
         var self = this;
         this.xLabsController.update(function(deltaX, deltaY, dolly, viewOffSetX){
             self.orbitControl.rotateUp(deltaY);
-            self.orbitControl.panLeft(5*deltaX);
+            self.orbitControl.panLeft(5*deltaX/8);
+//            console.log(self.camera.position);
 
             var zoomScale = getZoomScale();
             if(dolly === 1)
                 self.orbitControl.dollyOut(zoomScale);
             else if (dolly=== -1)
                 self.orbitControl.dollyIn(zoomScale);
-
+//            console.log(self.width);
             self.orbitControl.update();
             var distance = new THREE.Vector3().copy(self.orbitControl.object.position).sub(self.orbitControl.target).length();
-            self.camera.setViewOffset(self.width,self.height, self.width/4+350*viewOffSetX/distance, self.height/4, self.width/2, self.height/2);
+            self.camera.setViewOffset(self.width,self.height, self.width/4 + 450 * viewOffSetX/distance, self.height/4, self.width/2, self.height/2);  //350
+
+            self.xLabsController.oldHeadX += deltaX === undefined ? 0 : deltaX;
         });
         if(this.xLabsController.autoRotate == 1){
             this.object.rotation.y += 0.01;
@@ -149,7 +152,6 @@ xLabs.Viewer.prototype = {
         object.traverse(function(child){
             if(child instanceof THREE.Mesh){
                 child.geometry.computeBoundingBox();
-                console.log(child.geometry.position);
                 var box = child.geometry.boundingBox;
                 minX = Math.min(minX, box.min.x);
                 minY = Math.min(minY, box.min.y);

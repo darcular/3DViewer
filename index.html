@@ -1,47 +1,130 @@
-<!DOCTYPE html>
 <html>
-<head lang="en">
-    <meta charset="UTF-8">
-    <title>3D Viewer</title>
-    <link href="css/index.css" rel="stylesheet" type="text/css" />
+<head>
+    <title>3DViewer Xlab Controller</title>
+    <link rel="stylesheet" type="text/css" href="css/index.css" />
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
     <script src="lib/jquery-1.11.1.js"></script>
-    <script src="lib/three.js"></script>
-    <script src="lib/Detector.js"></script>
-    <script src="lib/OrbitControls.js"></script>
-    <script src="lib/OBJLoader.js"></script>
-    <script src="lib/MTLLoader.js"></script>
-    <script src="lib/OBJMTLLoader.js"></script>
-    <script src="lib/DAT.GUI.min.js"></script>
-    <script src="lib/THREEx.WindowResize.js"></script>
-    <script src="lib/stats.min.js"></script>
-
-    <!--loaders-->
-    <script src="lib/loaders/BabylonLoader.js"></script>
-    <script src="lib/loaders/ColladaLoader.js"></script>
-    <script src="lib/loaders/OBJLoader.js"></script>
-    <script src="lib/loaders/PLYLoader.js"></script>
-    <script src="lib/loaders/SceneLoader.js"></script>
-    <script src="lib/loaders/STLLoader.js"></script>
-    <script src="lib/loaders/UTF8Loader.js"></script>
-    <script src="lib/loaders/VRMLLoader.js"></script>
-    <script src="lib/loaders/VTKLoader.js"></script>
-    <script src="lib/loaders/ctm/lzma.js"></script>
-    <script src="lib/loaders/ctm/ctm.js"></script>
-    <script src="lib/loaders/ctm/CTMLoader.js"></script>
-    <script src="js/Loader.js"></script>
-
-    <script src="js/Main.js"></script>
-    <script src="js/Viewer.js"></script>
-    <script src="js/XlabsController.js"></script>
+    <script src="js/index.js"></script>
 </head>
-<body onload='main();'>
-    <div class="helpInfo" id="h1"></div>
-    <div class="helpInfo" id="h2"></div>
-    <div class="helpInfo" id="h3"></div>
-    <div id="faceDetected">No Face</div>
-    <div id="left"></div>
-    <div id="right"></div>
-    <div id="zoom"></div>
-    <div id="container"></div>
+<body>
+<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="">Motion-capture 3D Viewer</a>
+        </div>
+        <div class="collapse navbar-collapse">
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="http://xlabsgaze.com/">Download Xlabs</a></li>
+                <li><a href="#aboutMe">About me</a></li>
+            </ul>
+        </div><!--/.nav-collapse -->
+    </div>
+</div>
+
+<div id="jum" class="jumbotron">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-7">
+                <h2>View 3D model with xLabs!</h2>
+                <br/>
+                <p><b><a href="http://xlabsgaze.com/">xLabs</a></b> is a lightweight head pose and gaze tracking application through your webcam. I used it as a controller in my 3D viewer so that it can response to user's head-movement.</p>
+                <p>This 3D viewer was built with WebGL using <a class="threejs" href="http://mrdoob.github.com/three.js/" target="_blank">three.js</a>, a 3D library built on top of WebGL and maintained by <a href="https://twitter.com/mrdoob" target="_blank">Mr.doob</a> and <a href="https://twitter.com/alteredq" target="_blank">AlteredQualia</a>. </p>
+                <p>In order to play with head-movement, you need to <b><a href="http://xlabsgaze.com/">install xLabs</a></b> first.</p>
+            </div>
+            <div class="col-md-5">
+                <br/>
+                <br/>
+                <img src="assets/image/photo.png" width="100%"></image>
+                <p></p>
+                <br/>
+                <div style="text-align: right" id="fb-root">
+
+
+                    <a href="https://twitter.com/share" class="twitter-share-button" data-hashtags="xLabs">Tweet</a>
+                    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+                    <script src="https://apis.google.com/js/platform.js" async defer></script>
+                    <a class="g-plus" data-action="share" data-annotation="bubble"> </a>
+                    <!--<a class="fb-share-button" data-href="https://developers.facebook.com/docs/plugins/" data-width="100"></a>-->
+
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <a class="btn btn-primary btn-lg xlabTest" role="button">xLabs Test</a>
+                    &nbsp;&nbsp;&nbsp;
+                    <a class="btn btn-primary btn-lg" role="button" id="play">GO &raquo;</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <h3>What is xLabs?</h3>
+            <p><a href="http://xlabsgaze.com/">xLabs</a> is a small application for head pose and eye gaze tracking. It use the webcam; no other external devices are needed. You can find some demos
+                <a href="http://xlabsgaze.com/demo/">here</a></p>
+            <p><a class="btn btn-default" href="http://xlabsgaze.com/" role="button">View details &raquo;</a></p>
+        </div>
+        <div class="col-md-4">
+            <h3>What is the usage?</h3>
+            <p>The aim of this demo is to provide a nature 3D viewer via motion-capture. You can import different formats of 3D model in to this viewer (e.g. .obj .stl .js). It was built with
+                <a href="http://mrdoob.github.com/three.js/">three.js</a>, a 3D library built on top of WebGL.
+            </p>
+            <p><a class="btn btn-default" href="http://hexgl.bkcore.com/" role="button">View details &raquo;</a></p>
+        </div>
+        <div class="col-md-4">
+            <h3>How to play?</h3>
+            <p>
+                After installing the <a href="http://xlabsgaze.com/">xLabs service</a> and <a href="http://xlabsgaze.com/extension/">browser extension</a>, <b>restart</b> your browser. You can <a href="#" class="xlabTest">click here</a> to check if you have installed it correctly. In the viewer, move your head to see the nature 3D effect, and use head-rotation to rotate the object</b>.
+            </p>
+            <p><a class="btn btn-default" href="http://xlabsgaze.com/wp-content/uploads/xlabs_quick_start.pdf" role="button">View details &raquo;</a></p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-8">
+            <a name="aboutMe"><h3>About me</h3></a>
+            <div class="row">
+                <div class="col-md-2" id="profilePhoto">
+                    <a href="https://www.facebook.com/profile.php?id=100005320831199"><img src="assets/image/yikaig.png" width="66px" /></a>
+                </div>
+                <div class="col-md-10">
+                    <br/>
+                    <p>My name is Yikai Gong and currently I am a Master student studying in University of Melbourne. </p>
+                    <p>I built this demo when I was working for <a href="http://xlabsgaze.com/">xLabs</a> as an internship. You can find the source code in my github. Have fun!</p>
+                </div>
+            </div>
+
+        </div>
+        <div class="col-md-4">
+            <h3>Contact me</h3>
+            <p><a href="https://github.com/darcular">GitHub</a></p>
+            <p><a href="https://twitter.com/Yikaig">Twitter</a></p>
+            <p><a href="https://www.facebook.com/profile.php?id=100005320831199">Facebook</a></p>
+        </div>
+    </div>
+
+
+</div> <!-- /container -->
+<hr/>
+<div style="text-align: center">
+    <div class="inner">
+        <p>Demo for Motion-capture 3D Viewer, by <a href="https://www.facebook.com/profile.php?id=100005320831199">@Yikai Gong</a>.</p>
+    </div>
+</div>
+
+<a id="fb-root"></a>
+<script>(function(d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.0";
+    fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+<script src="lib/bootstrap.min.js"></script>
 </body>
 </html>
