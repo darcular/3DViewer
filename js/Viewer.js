@@ -121,7 +121,7 @@ xLabs.Viewer.prototype = {
         var self = this;
         this.xLabsController.update(function(deltaX, deltaY, dolly, viewOffSetX){
             self.orbitControl.rotateUp(deltaY);
-            self.orbitControl.panLeft(2*deltaX/8);
+            self.orbitControl.panLeft(1*deltaX/8);
 //            console.log(self.camera.position);
             var distance = new THREE.Vector3().copy(self.orbitControl.object.position).sub(self.orbitControl.target).length();
 //            console.log(distance);
