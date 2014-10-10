@@ -120,8 +120,7 @@ xLabs.Viewer.prototype = {
 //        if(!this.xLabsController.isFaceDetected) return; // TODO : using a counter to provide fault-tolerance
         var self = this;
         this.xLabsController.update(function(deltaX, deltaY, dolly, viewOffSetX){
-            self.orbitControl.rotateUp(deltaY);
-            self.orbitControl.panLeft(1*deltaX/8);
+//            self.orbitControl.rotateUp(deltaY);
 //            console.log(self.camera.position);
             var distance = new THREE.Vector3().copy(self.orbitControl.object.position).sub(self.orbitControl.target).length();
 //            console.log(distance);
@@ -131,11 +130,14 @@ xLabs.Viewer.prototype = {
             else if (dolly=== -1 && distance < 10)
                 self.orbitControl.dollyIn(zoomScale);
 //            console.log(self.width);
-            self.orbitControl.update();
 
             var windowPosition = self.width/3 + 150 * viewOffSetX/distance;
             if(windowPosition > 2*self.width/3) windowPosition = 2*self.width/3;
             else if(windowPosition < 0) windowPosition = 0;
+            else{
+                self.orbitControl.panLeft(1*deltaX/8);
+                self.orbitControl.update();
+            }
             self.camera.setViewOffset(self.width,self.height, windowPosition, self.height/3, self.width/3, self.height/3);  //350
 //            console.log(self.width*2/3 +", "+ (self.width/3 + 350 * viewOffSetX/distance));
             self.xLabsController.oldHeadX += deltaX === undefined ? 0 : deltaX;
