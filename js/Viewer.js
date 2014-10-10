@@ -23,6 +23,7 @@ xLabs.Viewer = function(){
 
 xLabs.Viewer.prototype = {
     init : function(){
+        var self = this;
         this.container=document.getElementById('container');
         this.renderer = new THREE.WebGLRenderer({antialias: true});
         this.renderer.setSize(this.width,this.height);
@@ -38,6 +39,10 @@ xLabs.Viewer.prototype = {
         this.initXLabsController();
 //        this.gl = this.renderer.domElement.getContext("webgl");
         this.loader = new Loader(this);
+        window.addEventListener("resize", function () {
+            self.width = window.innerWidth;
+            self.height = window.innerHeight;
+        });
     },
     start : function(){
         var self = this;
@@ -116,19 +121,23 @@ xLabs.Viewer.prototype = {
         var self = this;
         this.xLabsController.update(function(deltaX, deltaY, dolly, viewOffSetX){
             self.orbitControl.rotateUp(deltaY);
-            self.orbitControl.panLeft(5*deltaX/8);
+            self.orbitControl.panLeft(2*deltaX/8);
 //            console.log(self.camera.position);
-
+            var distance = new THREE.Vector3().copy(self.orbitControl.object.position).sub(self.orbitControl.target).length();
+//            console.log(distance);
             var zoomScale = getZoomScale();
             if(dolly === 1)
                 self.orbitControl.dollyOut(zoomScale);
-            else if (dolly=== -1)
+            else if (dolly=== -1 && distance < 10)
                 self.orbitControl.dollyIn(zoomScale);
 //            console.log(self.width);
             self.orbitControl.update();
-            var distance = new THREE.Vector3().copy(self.orbitControl.object.position).sub(self.orbitControl.target).length();
-            self.camera.setViewOffset(self.width,self.height, self.width/4 + 450 * viewOffSetX/distance, self.height/4, self.width/2, self.height/2);  //350
 
+            var windowPosition = self.width/3 + 150 * viewOffSetX/distance;
+            if(windowPosition > 2*self.width/3) windowPosition = 2*self.width/3;
+            else if(windowPosition < 0) windowPosition = 0;
+            self.camera.setViewOffset(self.width,self.height, windowPosition, self.height/3, self.width/3, self.height/3);  //350
+//            console.log(self.width*2/3 +", "+ (self.width/3 + 350 * viewOffSetX/distance));
             self.xLabsController.oldHeadX += deltaX === undefined ? 0 : deltaX;
         });
         if(this.xLabsController.autoRotate == 1){
